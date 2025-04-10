@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: cma-mysql
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=cma
+      - MYSQL_USER=springstudent
+      - MYSQL_PASSWORD=springstudent
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    ports:
+      - "3308:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "springstudent", "-pspringstudent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: cma-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+    # No need for environment variables as they're hardcoded in the Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
